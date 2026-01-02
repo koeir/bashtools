@@ -71,6 +71,7 @@ while IFS= read -r -d '' tool; do
         /bin/echo "[${0}] "$tool" already installed."
     fi
     
+# Process substitution so that the skipped and updated variable updates persist
 done < <(find "$tools_dir" -type f -print0);
 
 /bin/echo
