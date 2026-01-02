@@ -17,11 +17,16 @@ fi
 bashtools="$(dirname "$0")"
 
 # Check if tools directory exists
-tools_dir="$bashtools/tools"
+tools_dir="${bashtools}/tools"
 if [ ! -d "$tools_dir" ]; then 
-    /bin/echo "[$0] Directory \"$bashtools/$tools_dir\" not found."
+    /bin/echo "[$0] Directory \"${bashtools}/${tools_dir}\" not found."
     exit -2
 fi
+
+# Colors lol
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+NORMAL="\e[0m"
 
 # Find files in $tools_dir directory
 # Stream full path of each file and increment with null char instead of newline
@@ -34,14 +39,17 @@ find "$tools_dir" -type f -print0 |
 
         # If it exists in /usr/bin already, copy the existing file to /tmp before overwriting
         if /bin/ls "/usr/bin" | grep -q "$filename"; then
-            /bin/echo "[$0] ! Filename \"$filename\" found in "/usr/bin". !"
-            /bin/echo "[$0] Making a copy of \"/usr/bin/$filename\" to /tmp."
-            /bin/cp "/usr/bin/$filename" /tmp
+            /bin/echo -e "${RED}[$0] ! Filename \"${filename}\" found in "/usr/bin". !${NORMAL}"
+            /bin/echo -e "${GREEN}[$0] Making a copy of \"/usr/bin/${filename}\" to /tmp...${NORMAL}"
+            /bin/cp "/usr/bin/${filename}" /tmp
         fi
 
-        /bin/echo "[$0] Copying \"$tool\" to \"/usr/bin\"..."
+        /bin/echo "[$0] Copying \"${tool}\" to \"/usr/bin\"..."
         /bin/cp "$tool" "/usr/bin"
         
-    done
+    done;
+
+/bin/echo
+/bin/echo "[$0] Done."
 
 exit 0
