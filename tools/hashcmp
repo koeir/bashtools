@@ -22,6 +22,8 @@ checksum_2=$(/bin/cut -d ' ' -f1 $checksum_2)
 # Compare two checksums
 if [[ "$checksum_1" == "$checksum_2" ]]; then
     /bin/echo "equal"
+    exit 0
 else
     /bin/echo "not equal"
+    exit 1
 fi
