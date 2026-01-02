@@ -1,0 +1,16 @@
+#!/bin/bash
+
+directory="$1"
+
+if [ ! -d "$1" ]; then
+	echo "[$0] Directory $1 not found"
+	exit
+fi
+
+# Make temp file for piping hashes of multiple files
+temp=$(/bin/mktemp)
+trap 'rm -f "$temp"' EXIT
+
+# Hash files of the directory and stream to temp file
+find "$1" -type f -exec sha256sum {} + | sort > $temp
+sha256sum "$temp"

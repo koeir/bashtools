@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Take two checksum files
+checksum_1="$1"
+checksum_2="$2"
+
+# Check if files exist
+if [ ! -f "$checksum_1" ]; then
+    /bin/echo "[$0] Cannot find file "$checksum_1"."
+    exit -1
+elif [ ! -f "$checksum_2" ]; then
+    /bin/echo "[$0] Cannot find file "$checksum_2"."
+    exit -1
+fi
+
+# Cut the paths of the checksums
+# Also reuse the previous variable used for file path
+# to use it for the actual checksum value
+checksum_1=$(/bin/cut -d ' ' -f1 $checksum_1)
+checksum_2=$(/bin/cut -d ' ' -f1 $checksum_2)
+
+# Compare two checksums
+if [[ "$checksum_1" == "$checksum_2" ]]; then
+    /bin/echo "equal"
+else
+    /bin/echo "not equal"
+fi
