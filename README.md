@@ -1,2 +1,5 @@
 # Bash Tools
-- Just some small bash scripts that I use personally to automate tasks
+- Small bash scripts that I made for:
+    - Fun
+    - Automating tasks
+    - Tools
