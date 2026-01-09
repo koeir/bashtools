@@ -5,14 +5,19 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
+# Default
+pull=true
 # Try to pull from repo to get latest version
 if [[ $1 != "-y" ]]; then
     # Confirmation
     read -p "[$0] Pull latest version from repo? (y/n): " confirm
     if [[ ! $confirm =~ ^[yY]$ ]]; then
         echo -e "[$0] Not pulling..."
+        pull=false
     fi
+fi
 
+if [[ $pull == true ]]; then
     /usr/bin/git pull
 fi
 
