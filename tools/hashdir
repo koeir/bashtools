@@ -13,7 +13,9 @@ usage() {
     -i      Keep individual hashes of each file"
 }
 
-while getopts "hci:" flag; do 
+# Default
+individual_mode=true
+while getopts "hci" flag; do 
     case $flag in
         h) 
             usage
@@ -21,20 +23,22 @@ while getopts "hci:" flag; do
             ;;
         c) 
             compile_mode=true
+            individual_mode=false
             ;;
         i)
             individual_mode=true
             ;;
-        *)
+        \?)
             echo "Invalid option: $1" >&2
             usage
             exit 1
             ;;
     esac
+    shift
 done
 
 
-directory="$2"
+directory="$1"
 if [ ! -d "$directory" ]; then
 	echo "[$0] Directory $directory not found"
 	exit 1
@@ -57,6 +61,7 @@ if [[ $compile_mode == true ]]; then
     exit 0
 fi
 
+# Default
 if [[ $individual_mode == true ]]; then
     # Hash files of the directory and stream to stdout
     /bin/find "$directory" -type f -exec sha256sum {} +
