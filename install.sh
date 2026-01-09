@@ -53,7 +53,7 @@ while IFS= read -r -d '' tool; do
         ## Compare files
         if [[ ! -z "$(diff "$tool" "/usr/bin/${filename}")" ]]; then
             
-            ## If the hashes are different, copy the /usr/bin/file to /tmp before overwriting
+            ## If the file are different, copy the /usr/bin/file to /tmp before overwriting
             echo -e "${RED}[$0] ! Filename \"${filename}\" found in "/usr/bin". !${NORMAL}"
             echo -e "${GREEN}[$0] Making a copy of \"/usr/bin/${filename}\" to /tmp...${NORMAL}"
             cp "/usr/bin/${filename}" /tmp
