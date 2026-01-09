@@ -11,11 +11,13 @@ if (( EUID != 0 )); then
     exit -1
 fi
 
-# Confirmation
-read -p "[$0] Copy the executables to "/usr/bin"? (y/n): " confirm
-if [[ ! $confirm =~ ^[yY]$ ]]; then
-    echo -e "[$0] Cancelling..."
-    exit 0
+if [[ $1 != "-y" ]]; then
+    # Confirmation
+    read -p "[$0] Copy the executables to "/usr/bin"? (y/n): " confirm
+    if [[ ! $confirm =~ ^[yY]$ ]]; then
+        echo -e "[$0] Cancelling..."
+        exit 0
+    fi
 fi
 
 
