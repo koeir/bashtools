@@ -1,6 +1,8 @@
 #!/bin/bash
 
+# ctest
 # Compiles C code without making binary
+
 tmp=$(/bin/mktemp)
 trap 'rm -f $tmp' EXIT
 

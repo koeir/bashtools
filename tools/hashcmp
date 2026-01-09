@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# hashcmp
+# Compare two hashes
+
 # Take two checksum files
 checksum_1="$1"
 checksum_2="$2"
