@@ -1,10 +1,13 @@
 #!/bin/bash
 
+# hashdir
+# Compiles the hashes of all files in a directory into one
+
 directory="$1"
 
 if [ ! -d "$1" ]; then
-	echo "[$0] Directory $1 not found"
-	exit
+	/bin/echo "[$0] Directory $1 not found"
+	/bin/exit
 fi
 
 # Make temp file for piping hashes of multiple files
@@ -12,5 +15,10 @@ temp=$(/bin/mktemp)
 trap 'rm -f "$temp"' EXIT
 
 # Hash files of the directory and stream to temp file
-find "$1" -type f -exec sha256sum {} + | sort > $temp
-sha256sum "$temp"
+/bin/find "$1" -type f -exec sha256sum {} + | /bin/sort > $temp
+
+# Hashes all of the file hashes into one
+sha256sum "$temp" > "$temp"
+
+# Cut the path of the hash because it points to the temp file
+/bin/echo "$(/bin/cut -d ' ' -f1 "$temp" )"
