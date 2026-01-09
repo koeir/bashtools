@@ -1,24 +1,68 @@
 #!/bin/bash
 
 # hashdir
-# Compiles the hashes of all files in a directory into one
+# Compiles the hashes of all files in a directory 
 
-directory="$1"
+usage() {
+    echo "hashdir"
+    echo "Compiles the hashes of all files in a directory."
+    echo ""
+    echo "Usage:
+    -h      Help
+    -c      Compile hashes of all the files in the directory into one hash [default]
+    -i      Keep individual hashes of each file"
+}
 
-if [ ! -d "$1" ]; then
-	echo "[$0] Directory $1 not found"
+while getopts "hci:" flag; do 
+    case $flag in
+        h) 
+            usage
+            exit 1
+            ;;
+        c) 
+            compile_mode=true
+            ;;
+        i)
+            individual_mode=true
+            ;;
+        *)
+            echo "Invalid option: $1" >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+
+directory="$2"
+if [ ! -d "$directory" ]; then
+	echo "[$0] Directory $directory not found"
 	exit 1
 fi
 
-# Make temp file for piping hashes of multiple files
-temp=$(/bin/mktemp)
-trap 'rm -f "$temp"' EXIT
+if [[ $compile_mode == true ]]; then
+    # Make temp file for piping hashes of multiple files
+    temp=$(/bin/mktemp)
+    trap 'rm -f "$temp"' EXIT
 
-# Hash files of the directory and stream to temp file
-/bin/find "$1" -type f -exec sha256sum {} + | /bin/sort > $temp
+    # Hash files of the directory and stream to temp file
+    /bin/find "$directory" -type f -exec sha256sum {} + | /bin/sort > $temp
 
-# Hashes all of the file hashes into one
-/bin/sha256sum "$temp" > "$temp"
+    # Hashes all of the file hashes into one
+    /bin/sha256sum "$temp" > "$temp"
 
-# Cut the path of the hash because it points to the temp file
-echo "$(/bin/cut -d ' ' -f1 "$temp" )"
+    # Cut the path of the hash because it points to the temp file
+    echo "$(/bin/cut -d ' ' -f1 "$temp" )"
+
+    exit 0
+fi
+
+if [[ $individual_mode == true ]]; then
+    # Hash files of the directory and stream to stdout
+    /bin/find "$directory" -type f -exec sha256sum {} +
+
+    exit 0
+fi
+
+echo "[$0] Unknown error occured" >&2
+exit 1
