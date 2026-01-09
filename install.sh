@@ -50,8 +50,8 @@ while IFS= read -r -d '' tool; do
     ## If it exists in /usr/bin already, 
     if /bin/ls "/usr/bin" | /bin/grep -q "$filename"; then
         
-        ## Compare the hashes of the two files
-        if [ ! ${tools_dir}/hashcmp "$tool" /usr/bin/${filename} &> /dev/null ]; then
+        ## Compare files
+        if [[ ! -z "$(diff "$tool" "/usr/bin/${filename}")" ]]; then
             
             ## If the hashes are different, copy the /usr/bin/file to /tmp before overwriting
             echo -e "${RED}[$0] ! Filename \"${filename}\" found in "/usr/bin". !${NORMAL}"
