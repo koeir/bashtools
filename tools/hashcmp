@@ -21,9 +21,9 @@ fi
 declare -a hashes
 
 # Check if files exist
-for (( i = 0; i < argc; i++ )); do
-    if [ ! -f "${argv[$i]}" ]; then
-        echo "[$0] Cannot find file ${argv[$i]}."
+for i in $argv; do
+    if [ ! -f "$i" ]; then
+        echo "[$0] Cannot find file '$i'."
         exit -1
     else
         # Cut the paths of the checksums

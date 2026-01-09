@@ -6,8 +6,8 @@
 directory="$1"
 
 if [ ! -d "$1" ]; then
-	/bin/echo "[$0] Directory $1 not found"
-	/bin/exit
+	echo "[$0] Directory $1 not found"
+	exit 1
 fi
 
 # Make temp file for piping hashes of multiple files
@@ -18,7 +18,7 @@ trap 'rm -f "$temp"' EXIT
 /bin/find "$1" -type f -exec sha256sum {} + | /bin/sort > $temp
 
 # Hashes all of the file hashes into one
-sha256sum "$temp" > "$temp"
+/bin/sha256sum "$temp" > "$temp"
 
 # Cut the path of the hash because it points to the temp file
-/bin/echo "$(/bin/cut -d ' ' -f1 "$temp" )"
+echo "$(/bin/cut -d ' ' -f1 "$temp" )"
