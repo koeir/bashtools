@@ -5,6 +5,17 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
+# Try to pull from repo to get latest version
+if [[ $1 != "-y" ]]; then
+    # Confirmation
+    read -p "[$0] Pull latest version from repo? (y/n): " confirm
+    if [[ ! $confirm =~ ^[yY]$ ]]; then
+        echo -e "[$0] Not pulling..."
+    fi
+
+    /usr/bin/git pull
+fi
+
 # Must be ran as root
 if (( EUID != 0 )); then
     echo -e "${RED}[$0] Script must be ran as root.${NORMAL}"
