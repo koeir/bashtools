@@ -1,32 +1,45 @@
 #!/bin/bash
 
 # hashcmp
-# Compare two hashes
+# Checks if two or more hashes are the same
+# Catches the first instance of a hash being different
 
-# Take two checksum files
-checksum_1="$1"
-checksum_2="$2"
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+NORMAL="\e[0m"
+
+argc=$#
+argv=("$@")
+
+# Error if two or less argcs
+if (( argc < 2 )); then
+    echo -e "${RED}[$0] ERROR: Argument count is less than 2.${NORMAL}"
+    exit -1
+fi
+
+# Declare dynamic array for storing hashes
+declare -a hashes
 
 # Check if files exist
-if [ ! -f "$checksum_1" ]; then
-    /bin/echo "[$0] Cannot find file "$checksum_1"."
-    exit -1
-elif [ ! -f "$checksum_2" ]; then
-    /bin/echo "[$0] Cannot find file "$checksum_2"."
-    exit -1
-fi
+for (( i = 0; i < argc; i++ )); do
+    if [ ! -f "${argv[$i]}" ]; then
+        echo "[$0] Cannot find file ${argv[$i]}."
+        exit -1
+    else
+        # Cut the paths of the checksums
+        hashes[$i]="$(cut -d ' ' -f1 "${argv[$i]}")"
+    fi
+done
 
-# Cut the paths of the checksums
-# Also reuse the previous variable used for file path
-# to use it for the actual checksum value
-checksum_1=$(/bin/cut -d ' ' -f1 $checksum_1)
-checksum_2=$(/bin/cut -d ' ' -f1 $checksum_2)
+# Compare the checksums
+for (( i = 0; i < argc - 1; i++ )); do
+    if [[ "${hashes[$i]}" != "${hashes[$((i+1))]}" ]]; then
+        echo -e "${RED}${argv[$i]}: ${hashes[$i]}: FAILED"
+        echo -e "${argv[$((i+1))]}: ${hashes[$((i+1))]}: FAILED${NORMAL}"
+        echo "[$0] NOTE: Only the first instance of a hash being different is called out."
+        exit 1
+    fi
+done
 
-# Compare two checksums
-if [[ "$checksum_1" == "$checksum_2" ]]; then
-    /bin/echo "equal"
-    exit 0
-else
-    /bin/echo "not equal"
-    exit 1
-fi
+echo -e "${GREEN}${@}: OK${NORMAL}"
+exit 0
