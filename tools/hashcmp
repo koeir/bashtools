@@ -9,7 +9,7 @@ GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
 argc=$#
-argv=("$@")
+files=("$@")
 
 # Error if two or less argcs
 if (( argc < 2 )); then
@@ -17,29 +17,50 @@ if (( argc < 2 )); then
     exit -1
 fi
 
-# Declare dynamic array for storing hashes
+
 declare -a hashes
-
+count=0
 # Check if files exist
-for i in $argv; do
-    if [ ! -f "$i" ]; then
-        echo "[$0] Cannot find file '$i'."
+for file in "${files[@]}"; do
+    if [ ! -f "$file" ]; then
+        echo "[$0] Cannot find file '$file'."
         exit -1
-    else
-        # Cut the paths of the checksums
-        hashes[$i]="$(cut -d ' ' -f1 "${argv[$i]}")"
+    fi
+
+    # Sort $file
+    sorted="$(mktemp)"
+    trap 'rm -f "$sorted"' EXIT
+    echo "$(sort "$file")" > "$sorted"
+
+    # Make a tempfile that stores the contents of $sorted
+    sorted_hashes="$(mktemp)"
+    trap 'rm -f "$sorted_hashes"' EXIT
+
+    # Cut all but first first field (hash)
+    declare -a tmp
+    while read line; do
+        echo "$(echo "$line" | cut -d ' ' -f1)" >> $sorted_hashes
+    done < "$sorted"
+
+    # Append path to sorted cut file to the hashes array
+    hashes[$count]="$sorted_hashes"
+    count=$((count+1))
+done
+
+# Compare each hash file with the first one given
+echo "Checking each file against file '${files[0]}'"...
+failed=false
+for (( i = 1; i < ${#hashes[@]}; i++ )); do
+    # Chain-check if they are all the same
+    if [[ ! -z "$(diff -q "${hashes[0]}" "${hashes[$i]}")" ]]; then
+        echo -e "${RED}${files[$i]}: FAILED${NORMAL}"
+        failed=true
+    else echo -e "${GREEN}${files[$i]}: OK${NORMAL}"
     fi
 done
 
-# Compare the checksums
-for (( i = 0; i < argc - 1; i++ )); do
-    if [[ "${hashes[$i]}" != "${hashes[$((i+1))]}" ]]; then
-        echo -e "${RED}${argv[$i]}: ${hashes[$i]}: FAILED"
-        echo -e "${argv[$((i+1))]}: ${hashes[$((i+1))]}: FAILED${NORMAL}"
-        echo "[$0] NOTE: Only the first instance of a hash being different is called out."
-        exit 1
-    fi
-done
 
-echo -e "${GREEN}${@}: OK${NORMAL}"
+if [[ $failed == true ]]; then
+    exit 1
+fi
 exit 0
