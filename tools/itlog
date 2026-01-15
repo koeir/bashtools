@@ -1,0 +1,20 @@
+#!/bin/bash
+
+logs_dir="$HOME/Documents/logs"
+if [[ ! -d "$logs_dir" ]]; then
+    echo "[$0] Log directory not found: "$logs_dir""
+    exit 1
+fi
+
+date="$(date --iso-8601)"
+lotd="${logs_dir}/${date}/lotd.md"
+if [[ ! -d "${logs_dir}/${date}" ]]; then
+    mkdir "${logs_dir}/${date}"
+
+    if [[ ! -f "$lotd" ]]; then
+        echo "$date" > "$lotd"
+    fi
+fi
+
+vim "$lotd"
+exit 0
