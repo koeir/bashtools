@@ -2,6 +2,10 @@
 
 # hashdir
 # Compiles the hashes of all files in a directory 
+#
+# Cuts out the file path before hashing a digest
+#
+# -c flag omits paths because it points to a temp file holding the hash values of all the files.
 
 usage() {
     echo "hashdir"
@@ -37,34 +41,39 @@ while getopts "hci" flag; do
     shift
 done
 
+argv=("$@")
 
-directory="$1"
-if [ ! -d "$directory" ]; then
-	echo "[$0] Directory $directory not found"
-	exit 1
-fi
+for arg in "${argv[@]}"; do
+    if [[ ! -d "$arg" ]]; then
+        echo "[$0] Directory "$arg" not found" >&2
+        exit 1
+    fi
+done
+
 
 if [[ $compile_mode == true ]]; then
-    # Make temp file for piping hashes of multiple files
-    temp=$(/bin/mktemp)
-    trap 'rm -f "$temp"' EXIT
+    for directory in "${argv[@]}"; do
+        # Make temp file for piping hashes of multiple files
+        temp=$(mktemp)
+        trap 'rm -f "$temp"' EXIT
 
-    # Hash files of the directory and stream to temp file
-    /bin/find "$directory" -type f -exec sha256sum {} + | /bin/sort > $temp
+        # Hash files of the directory, cut paths, and stream to temp file
+        find "$directory" -type f -exec sha256sum {} + | cut -d ' ' -f1 | sort > "$temp"
+    done
 
     # Hashes all of the file hashes into one
-    /bin/sha256sum "$temp" > "$temp"
-
-    # Cut the path of the hash because it points to the temp file
-    echo "$(/bin/cut -d ' ' -f1 "$temp" )"
+    sha256sum "$temp" | cut -d ' ' -f1 >&1
 
     exit 0
 fi
 
+
 # Default
 if [[ $individual_mode == true ]]; then
-    # Hash files of the directory and stream to stdout
-    /bin/find "$directory" -type f -exec sha256sum {} +
+    for directory in "${argv[@]}"; do
+        # Hash files of the directory and stream to stdout
+        find "$directory" -type f -exec sha256sum {} +
+    done
 
     exit 0
 fi
