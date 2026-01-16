@@ -58,7 +58,7 @@ if [[ $compile_mode == true ]]; then
         trap 'rm -f "$temp"' EXIT
 
         # Hash files of the directory, cut paths, and stream to temp file
-        find "$directory" -type f -exec sha256sum {} + | cut -d ' ' -f1 | sort > "$temp"
+        find "$directory" -type f -exec sha256sum "{}" \+ | cut -d ' ' -f1 | sort > "$temp"
     done
 
     # Hashes all of the file hashes into one
@@ -72,7 +72,7 @@ fi
 if [[ $individual_mode == true ]]; then
     for directory in "${argv[@]}"; do
         # Hash files of the directory and stream to stdout
-        find "$directory" -type f -exec sha256sum {} +
+        find "$directory" -type f -exec sha256sum "{}" \+ >&1
     done
 
     exit 0
