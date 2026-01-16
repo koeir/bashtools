@@ -18,29 +18,18 @@ if (( argc < 2 )); then
 fi
 
 
+# An array containing filenames as keys and hashes as values
 declare -a hashes
 index=0
 for file in "${files[@]}"; do
+    
     # Check if files exist
     if [ ! -f "$file" ]; then
         echo "[$0] Cannot find file '$file'."
         exit -1
     fi
 
-    # Sort $file
-    sorted="$(mktemp)"
-    echo "$(sort "$file")" > "$sorted"
-
-    # Make a tempfile that stores the contents of $sorted after cutting paths of each hash
-    sorted_hashes="$(mktemp)"
-
-    # Cut paths of each hash
-    while read line; do
-        echo "$(echo "$line" | cut -d ' ' -f1)" >> $sorted_hashes
-    done < "$sorted"
-
-    # Append path to sorted cut file to the hashes array
-    hashes[$index]="$sorted_hashes"
+    hashes[$index]="$(sort "$file" | cut -d ' ' -f1)"
     index=$((index+1))
 done
 
@@ -49,10 +38,12 @@ echo "Checking each file against file '${files[0]}'"...
 failed=false
 count=0
 for (( i = 1; i < ${#hashes[@]}; i++ )); do
-    if [[ ! -z "$(diff -q "${hashes[0]}" "${hashes[$i]}")" ]]; then
+
+    if [[ "${hashes[0]}" != "${hashes[$i]}" ]]; then
         echo -e "${RED}${files[$i]}: FAILED${NORMAL}"
         failed=true
         count=$((count+1))
+
     else echo -e "${GREEN}${files[$i]}: OK${NORMAL}"
     fi
 done
@@ -61,6 +52,7 @@ echo ""
 echo -e "[$0] result: $count file/s failed."
 if [[ $failed == true ]]; then
     exit 1
+
 else exit 0
 fi
 
