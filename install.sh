@@ -56,7 +56,8 @@ while IFS= read -r -d '' tool; do
         if [[ ! -z "$(diff "$tool" "/usr/bin/${filename}")" ]]; then
             
             ## If the file are different, copy the /usr/bin/file to /tmp before overwriting
-            echo -e "${RED}[$0] ! Filename \"${filename}\" found in "/usr/bin". !${NORMAL}"
+            echo -e "${RED}[$0] ! Filename \"${filename}\" found in "/usr/bin" !..."
+            echo -e "...but the contents are different."
             echo -e "${GREEN}[$0] Making a copy of \"/usr/bin/${filename}\" to /tmp...${NORMAL}"
             cp "/usr/bin/${filename}" /tmp
             updated=$((updated+1))
