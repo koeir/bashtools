@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# bak
+# Creates a backup copy of your file/directory in the current directory
+
+if [ ! -e "$1" ]; then
+    echo "[$0] File or directory not found."
+    exit 1
+fi
+
+cp -r "${1}"{,.bak}
+
+exit 0
