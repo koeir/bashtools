@@ -19,9 +19,9 @@ fi
 
 
 declare -a hashes
-count=0
-# Check if files exist
+index=0
 for file in "${files[@]}"; do
+    # Check if files exist
     if [ ! -f "$file" ]; then
         echo "[$0] Cannot find file '$file'."
         exit -1
@@ -29,38 +29,40 @@ for file in "${files[@]}"; do
 
     # Sort $file
     sorted="$(mktemp)"
-    trap 'rm -f "$sorted"' EXIT
     echo "$(sort "$file")" > "$sorted"
 
-    # Make a tempfile that stores the contents of $sorted
+    # Make a tempfile that stores the contents of $sorted after cutting paths of each hash
     sorted_hashes="$(mktemp)"
-    trap 'rm -f "$sorted_hashes"' EXIT
 
-    # Cut all but first first field (hash)
-    declare -a tmp
+    # Cut paths of each hash
     while read line; do
         echo "$(echo "$line" | cut -d ' ' -f1)" >> $sorted_hashes
     done < "$sorted"
 
     # Append path to sorted cut file to the hashes array
-    hashes[$count]="$sorted_hashes"
-    count=$((count+1))
+    hashes[$index]="$sorted_hashes"
+    index=$((index+1))
 done
 
 # Compare each hash file with the first one given
 echo "Checking each file against file '${files[0]}'"...
 failed=false
+count=0
 for (( i = 1; i < ${#hashes[@]}; i++ )); do
-    # Chain-check if they are all the same
     if [[ ! -z "$(diff -q "${hashes[0]}" "${hashes[$i]}")" ]]; then
         echo -e "${RED}${files[$i]}: FAILED${NORMAL}"
         failed=true
+        count=$((count+1))
     else echo -e "${GREEN}${files[$i]}: OK${NORMAL}"
     fi
 done
 
-
+echo ""
+echo -e "[$0] result: $count file/s failed."
 if [[ $failed == true ]]; then
     exit 1
+else exit 0
 fi
-exit 0
+
+echo -e "${RED}Unknown error occured.${NORMAL}"
+exit 1
