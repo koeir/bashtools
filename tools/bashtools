@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# bashtools
+# Just an interface for using the tools
+# Mainly added for updating
+
+argv=("$@")
+
+bashtools_dir="/usr/share/bashtools"
+if [ ! -d "$bashtools_dir" ]; then
+    echo "[$0] $bashtools_dir directory not found!"
+    exit -1
+fi
+
+# If the supplied arg is a bashtool vvvvvvvvvvvvvvvvvvv
+## Check if the supplemented argument is a bashtool
+isBashtools=false
+if [[ ! -z "$(find "$bashtools_dir" -type f -executable -name "${argv[0]}")" ]]; then isBashtools=true 
+fi
+
+## Execute the bashtool if argv[0] is a bashtool
+if [[ "$isBashtools" == true ]]; then
+    command="${argv[0]}"
+    argv=("${argv[@]:1}") 
+
+    $command ${argv[@]}
+    exit 0
+fi
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+case ${argv[0]} in 
+    "update")
+        # Clone the repository to a tempfile and run the install script 
+
+        githttps="https://github.com/koeir/bashtools.git"
+        tmpdir="$(mktemp -d)"
+        trap 'rm -fr "$tmpdir"' EXIT
+
+        if (( EUID != 0 )); then
+            echo "[$0] update must be ran as root!"
+            exit -1
+        fi
+
+        echo "[$0] Cloning repository (${githttps})..."
+        git clone "${githttps}" "$tmpdir"
+                
+        echo "[$0] Installing tools..."
+        bash -c "${tmpdir}/install.sh"
+
+        echo ""
+        echo "[$0] Installation complete!"
+        exit
+        ;;
+esac
+
+echo "[$0] ${command} not found."
+exit 1
