@@ -5,15 +5,13 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
-# Must be ran as root
 if (( EUID != 0 )); then
     echo -e "${RED}[$0] Script must be ran as root.${NORMAL}"
     exit -1
 fi
 
 if [[ $1 != "-y" ]]; then
-    # Confirmation
-    read -p "[$0] Copy the executables to "/usr/bin"? (y/n): " confirm
+    read -p "[$0] Copy the executables to "${installation_dir}"? (y/n): " confirm
     if [[ ! $confirm =~ ^[yY]$ ]]; then
         echo -e "[$0] Cancelling..."
         exit 0
@@ -22,60 +20,55 @@ fi
 
 
 bashtools="$(dirname "$0")"
-
-# Check if tools directory exists
 tools_dir="${bashtools}/tools"
 if [ ! -d "$tools_dir" ]; then 
-    /bin/echo -e "${RED}[$0] Directory \"${bashtools}/${tools_dir}\" not found.${NORMAL}"
+    echo -e "${RED}[$0] Directory \"${tools_dir}\" not found.${NORMAL}"
     exit -2
 fi
 
-# Check if hashcmp tool exists; needed for later
-if [ ! -f "$tools_dir/hashcmp" ]; then
-    echo -e "${RED}[${0}]"${tools}/hashcmp" not found.${NORMAL}"
-    exit -3
-fi
+installation_dir="/usr/share/bashtools"
+if [ ! -d "$installation_dir" ]; then
+    echo "[$0] Making directory \"${installation_dir}\"..."
+    mkdir -p "$installation_dir"
 
+    export PATH="$installation_dir:$PATH"
+fi
 
 skipped=0
 updated=0
 
 # Find files in $tools_dir directory
-# Stream full path of each file and increment with null char instead of newline
-# Read until null char and store in variable $tool
+# put them in the installation directory
+# the tools are accessible via the interface "bashtools"
 while IFS= read -r -d '' tool; do
-    installed="false"        
-
-    ## Get filename of tool,
-    filename="$(/bin/echo "$tool" | awk -F '/' '{print $NF}')"
+    installed=false        
+    filename="$(echo "$tool" | awk -F '/' '{print $NF}')"
    
-    ## If it exists in /usr/bin already, 
-    if /bin/ls "/usr/bin" | /bin/grep -q "$filename"; then
+    if [ -f "${installation_dir}/${filename}" ]; then
         
-        ## Compare files
-        if [[ ! -z "$(diff "$tool" "/usr/bin/${filename}")" ]]; then
-            
-            ## If the file are different, copy the /usr/bin/file to /tmp before overwriting
-            echo -e "${RED}[$0] ! Filename \"${filename}\" found in "/usr/bin" !..."
-            echo -e "...but the contents are different."
-            echo -e "${GREEN}[$0] Making a copy of \"/usr/bin/${filename}\" to /tmp...${NORMAL}"
-            cp "/usr/bin/${filename}" /tmp
-            updated=$((updated+1))
-        else
-            installed="true"
+        if diff -q "$tool" "${installation_dir}/${filename}"; then
+
+            installed=true
             skipped=$((skipped+1))
+
+        else
+            
+            echo -e "${RED}[$0] ! Filename \"${filename}\" found in \"${installation_dir}\" !..."
+            echo -e "...but the contents are different."
+            echo -e "${GREEN}[$0] Making a copy of \"${installation_dir}/${filename}\" to /tmp...${NORMAL}"
+            cp "${installation_dir}/${filename}" /tmp
+            updated=$((updated+1))
+
         fi
     fi
     
-    ## If it's already installed, skip
-    if [[ $installed != "true" ]]; then
-        echo "[$0] Copying \"${tool}\" to \"/usr/bin\"..."
-        cp "$tool" "/usr/bin"
+    if [[ $installed != true ]]; then
+        echo "[$0] Copying \"${tool}\" to \"${installation_dir}\"..."
+        cp "$tool" "${installation_dir}/${filename}"
     else
-        echo "[${0}] "$tool" already installed."
+        echo "[${0}] \"$filename\" already installed."
     fi
     
-## Find executable files in the $tools_dir
 done < <(find "$tools_dir" -type f -executable -print0);
 
 
