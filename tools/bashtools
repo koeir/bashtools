@@ -2,46 +2,110 @@
 
 # bashtools
 # Just an interface for using the tools
-# Mainly added for updating
+# Mainly added for updating/deleting the bashtools
 
 argv=("$@")
+subcommand="${argv[0]}"
+suppargs=("${argv[@]:1}")
 
 bashtools_dir="/usr/share/bashtools"
 if [ ! -d "$bashtools_dir" ]; then
+
     echo "[$0] $bashtools_dir directory not found!"
     exit -1
+
 fi
 
-# If the supplied arg is a bashtool vvvvvvvvvvvvvvvvvvv
-## Check if the supplemented argument is a bashtool
-isBashtools=false
-if [[ ! -z "$(find "$bashtools_dir" -type f -executable -name "${argv[0]}")" ]]; then isBashtools=true 
-fi
+show_usage() {
+    echo "bashtools"
+    echo ""
+    echo "Decription"
+    echo "Main usage is for updating/uninstalling specific or all bashtools"
+    echo "Acts as an interface for using the bash scripts installed in \"$bashtools_dir\""
 
-## Execute the bashtool if argv[0] is a bashtool
-if [[ "$isBashtools" == true ]]; then
-    command="${argv[0]}"
-    argv=("${argv[@]:1}") 
-
-    $command ${argv[@]}
     exit 0
-fi
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+}
 
-case ${argv[0]} in 
+uninstallALl() {
+    read -p "[$0] Uninstall all bashtools?: (y/n): " confirm
+    if [[ ! "$confirm" =~ ^[yY]$ ]]; then
+        echo -e "[$0] Cancelling..."
+        exit 0
+    fi
+
+    echo "[$0] Moving ${bashtools_dir} to /tmp"
+     if ! mv "${bashtools_dir}" "/tmp"; then
+         echo "[$0] ERROR while moving the bashtools directory."
+         exit 1
+     fi
+
+    echo "[$0] Done."
+    echo "[$0] Reboot to fully uninstall bashtools, or just rm -fr the directory."
+
+    exit 0
+}
+
+uninstall () {
+
+    argv=("$@")
+
+    if [ -z "${argv[@]}" ]; then uninstallALl
+    else 
+
+        read -p "[$0] Uninstall these bashtools?: ${argv[@]} (y/n): " confirm
+        if [[ ! "$confirm" =~ ^[yY]$ ]]; then
+            echo -e "[$0] Cancelling..."
+            exit 0
+        fi
+
+        skipped=0
+        successful=0
+        for tool in $@; do
+
+            echo "[$0] Moving "${bashtools_dir}/${tool}" to /tmp"
+            if ! mv "${bashtools_dir}/${tool}" /tmp ; then
+                echo "[$0] ERROR while moving ${bashtools_dir}/${tool}. Skipping."
+                skipped=$((skipped+1))
+            else successful=$((successful+1))
+            fi
+
+        done
+
+        echo "[$0] Done."
+        echo "[$0] $successful successfully uninstalled."
+        echo "[$0] $skipped skipped."
+        echo "[$0] Reboot to fully uninstall bashtools, or just rm -fr the directory."
+        exit 0
+
+    fi
+}
+
+# Act as an interface for the bashtools
+if [ ! -z "$(find "$bashtools_dir" -type f -executable -name "$subcommand")" ]; then 
+
+    "${subcommand}" "${suppargs[@]}"
+    exit 0
+
+fi
+
+# Other uses
+case "$subcommand" in 
+    "")
+        echo "[$0] Please supply an argument!"
+        exit 1
+        ;;
     "update")
         # Clone the repository to a tempfile and run the install script 
-
-        githttps="https://github.com/koeir/bashtools.git"
-        tmpdir="$(mktemp -d)"
-        trap 'rm -fr "$tmpdir"' EXIT
 
         if (( EUID != 0 )); then
             echo "[$0] update must be ran as root!"
             exit -1
         fi
 
-        echo "[$0] Cloning repository (${githttps})..."
+        githttps="https://github.com/koeir/bashtools.git"
+        tmpdir="$(mktemp -d)"
+        trap 'rm -fr "$tmpdir"' EXIT
+
         git clone "${githttps}" "$tmpdir"
                 
         echo "[$0] Installing tools..."
@@ -49,9 +113,25 @@ case ${argv[0]} in
 
         echo ""
         echo "[$0] Installation complete!"
-        exit
+        exit 0
+        ;;
+    "uninstall")
+        uninstall "${argv[@]:1}"
+        exit 0
+        ;;
+    "help")
+        show_usage
+        exit 0
+        ;;
+    'h')
+        show_usage
+        exit 0
+        ;;
+    *)
+        echo "[$0] Subcommand \"${subcommand}\" not found."
+        exit 1
         ;;
 esac
 
-echo "[$0] ${command} not found."
+echo "[$0] Unknown ERROR occured."
 exit 1
