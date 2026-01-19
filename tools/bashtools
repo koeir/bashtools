@@ -33,8 +33,10 @@ uninstallALl() {
         exit 0
     fi
 
-    echo "[$0] Moving ${bashtools_dir} to /tmp"
-     if ! mv "${bashtools_dir}" "/tmp"; then
+    uninstalldir="$(mktemp -d)"
+
+    echo "[$0] Moving $bashtools_dir to $uninstalldir..."
+     if ! mv "${bashtools_dir}" "$uninstalldir"; then
          echo "[$0] ERROR while moving the bashtools directory."
          exit 1
      fi
@@ -58,12 +60,14 @@ uninstall () {
             exit 0
         fi
 
+        uninstalldir="$(mktemp -d)"
+
         skipped=0
         successful=0
         for tool in $@; do
 
-            echo "[$0] Moving "${bashtools_dir}/${tool}" to /tmp"
-            if ! mv "${bashtools_dir}/${tool}" /tmp ; then
+            echo "[$0] Moving ${bashtools_dir}/${tool} to $uninstalldir..."
+            if ! mv "${bashtools_dir}/${tool}" "$uninstalldir" ; then
                 echo "[$0] ERROR while moving ${bashtools_dir}/${tool}. Skipping."
                 skipped=$((skipped+1))
             else successful=$((successful+1))
