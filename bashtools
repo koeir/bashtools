@@ -36,10 +36,16 @@ uninstallALl() {
     uninstalldir="$(mktemp -d)"
 
     echo "[$0] Moving $bashtools_dir to $uninstalldir..."
-     if ! mv "${bashtools_dir}" "$uninstalldir"; then
-         echo "[$0] ERROR while moving the bashtools directory."
-         exit 1
-     fi
+    if ! mv "${bashtools_dir}" "$uninstalldir"; then
+        echo "[$0] ERROR while moving the bashtools directory."
+        exit 1
+    fi
+
+    echo "[$0] Moving $0 to $uninstalldir/bashtools..."
+    if ! mv "$0" "$uninstalldir/bashtools"; then
+        echo "[$0] ERROR while moving the bashtools executable."
+        exit 1
+    fi
 
     echo "[$0] Done."
     echo "[$0] Reboot to fully uninstall bashtools, or just rm -fr the directory."
