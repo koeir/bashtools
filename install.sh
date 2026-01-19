@@ -10,6 +10,14 @@ if (( EUID != 0 )); then
     exit -1
 fi
 
+installation_dir="/usr/share/bashtools"
+if [ ! -d "$installation_dir" ]; then
+    echo "[$0] Making directory \"${installation_dir}\"..."
+    mkdir -p "$installation_dir"
+
+    export PATH="${PATH}:${installation_dir}"
+fi
+
 if [[ $1 != "-y" ]]; then
     read -p "[$0] Copy the executables to "${installation_dir}"? (y/n): " confirm
     if [[ ! $confirm =~ ^[yY]$ ]]; then
@@ -24,14 +32,6 @@ tools_dir="${bashtools}/tools"
 if [ ! -d "$tools_dir" ]; then 
     echo -e "${RED}[$0] Directory \"${tools_dir}\" not found.${NORMAL}"
     exit -2
-fi
-
-installation_dir="/usr/share/bashtools"
-if [ ! -d "$installation_dir" ]; then
-    echo "[$0] Making directory \"${installation_dir}\"..."
-    mkdir -p "$installation_dir"
-
-    export PATH="$installation_dir:$PATH"
 fi
 
 skipped=0
