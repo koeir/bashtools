@@ -6,34 +6,43 @@ GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
 if (( EUID != 0 )); then
+
     echo -e "${RED}[$0] Script must be ran as root.${NORMAL}"
     exit -1
+
 fi
 
 # Do not change for the love of god
-bashtools_installation_dir="/usr/share/bashtools"
-if [ ! -d "$bashtools_installation_dir" ]; then
-    echo "[$0] Making directory \"${bashtools_installation_dir}\"..."
-    mkdir -p "$bashtools_installation_dir"
+BASHTOOLS_INSTALLATION_DIR="/usr/share/bashtools"
+if [ ! -d "$BASHTOOLS_INSTALLATION_DIR" ]; then
 
-    export PATH="${PATH}:${bashtools_installation_dir}"
+    echo "[$0] Making directory \"${BASHTOOLS_INSTALLATION_DIR}\"..."
+    mkdir -p "$BASHTOOLS_INSTALLATION_DIR"
+
+    export PATH="${PATH}:${BASHTOOLS_INSTALLATION_DIR}"
+
 fi
 
 if [[ $1 != "-y" ]]; then
-    read -p "[$0] Copy the executables to "${bashtools_installation_dir}"? (y/n): " confirm
+
+    read -p "[$0] Copy the executables to "${BASHTOOLS_INSTALLATION_DIR}"? (y/n): " confirm
     if [[ ! $confirm =~ ^[yY]$ ]]; then
         echo -e "[$0] Cancelling..."
         exit 0
     fi
+
 fi
 
 
 bashtools="$(dirname "$0")"
 tools_dir="${bashtools}/tools"
 if [ ! -d "$tools_dir" ]; then 
+
     echo -e "${RED}[$0] Directory \"${tools_dir}\" not found.${NORMAL}"
     exit -2
+
 fi
+chmod +x -R "$tools_dir"
 
 skipped=0
 updated=0
@@ -42,22 +51,23 @@ updated=0
 # put them in the installation directory
 # the tools are accessible via the interface "bashtools"
 while IFS= read -r -d '' tool; do
+
     installed=false        
     filename="$(echo "$tool" | awk -F '/' '{print $NF}')"
    
-    if [ -f "${bashtools_installation_dir}/${filename}" ]; then
+    if [ -f "${BASHTOOLS_INSTALLATION_DIR}/${filename}" ]; then
         
-        if diff -q "$tool" "${bashtools_installation_dir}/${filename}"; then
+        if diff -q "$tool" "${BASHTOOLS_INSTALLATION_DIR}/${filename}"; then
 
             installed=true
             skipped=$((skipped+1))
 
         else
             
-            echo -e "${RED}[$0] ! Filename \"${filename}\" found in \"${bashtools_installation_dir}\" !..."
+            echo -e "${RED}[$0] ! Filename \"${filename}\" found in \"${BASHTOOLS_INSTALLATION_DIR}\" !..."
             echo -e "...but the contents are different."
-            echo -e "${GREEN}[$0] Making a copy of \"${bashtools_installation_dir}/${filename}\" to /tmp...${NORMAL}"
-            cp "${bashtools_installation_dir}/${filename}" /tmp
+            echo -e "${GREEN}[$0] Making a copy of \"${BASHTOOLS_INSTALLATION_DIR}/${filename}\" to /tmp...${NORMAL}"
+            cp "${BASHTOOLS_INSTALLATION_DIR}/${filename}" /tmp
             updated=$((updated+1))
 
         fi
@@ -66,8 +76,10 @@ while IFS= read -r -d '' tool; do
     if [[ $installed == true ]]; then
         echo "[${0}] \"$filename\" already installed."
     else
-        echo "[$0] Copying \"${tool}\" to \"${bashtools_installation_dir}\"..."
-        cp "$tool" "${bashtools_installation_dir}/${filename}"
+
+        echo "[$0] Copying \"${tool}\" to \"${BASHTOOLS_INSTALLATION_DIR}\"..."
+        cp "$tool" "${BASHTOOLS_INSTALLATION_DIR}/${filename}"
+
     fi
     
 done < <(find "$tools_dir" -type f -executable -print0);
@@ -102,8 +114,6 @@ else
     echo "[$0] Copying \"$tool\" to \"${installation_dir}\"..."
     cp "$bashtools_exec" "${installation_dir}/$tool"
 fi
-
-chmod 751 -R "$bashtools_installation_dir"
 
 echo
 echo "[${0}] Done."
