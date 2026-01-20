@@ -84,38 +84,7 @@ while IFS= read -r -d '' tool; do
     
 done < <(find "$tools_dir" -type f -executable -print0);
 
-# Install the bashtools interface but in bin
-installation_dir="/usr/bin"
-bashtools_exec="$bashtools/bashtools"
-tool="bashtools"
-installed=false
-if [ -f "$installation_dir/$tool" ]; then
-
-    if diff -q "$bashtools_exec" "${installation_dir}/$tool"; then
-
-        installed=true
-        skipped=$((skipped+1))
-
-    else
-        
-        echo -e "${RED}[$0] ! Filename \"$tool\" found in \"${installation_dir}\" !..."
-        echo -e "...but the contents are different."
-        echo -e "${GREEN}[$0] Making a copy of \"${installation_dir}/$tool\" to /tmp...${NORMAL}"
-        cp "${installation_dir}/$tool" /tmp
-        updated=$((updated+1))
-
-    fi
-
-fi
-
-if [[ $installed == true ]]; then
-    echo "[${0}] \"$tool\" already installed."
-else
-    echo "[$0] Copying \"$tool\" to \"${installation_dir}\"..."
-    cp "$bashtools_exec" "${installation_dir}/$tool"
-fi
-
-echo
+echo ""
 echo "[${0}] Done."
 echo "[${0}] Overwritten files:    "${updated}""
 echo "[${0}] Skipped files:        "${skipped}""
