@@ -19,8 +19,6 @@ if [ ! -d "$BASHTOOLS_INSTALLATION_DIR" ]; then
     echo "[$0] Making directory \"${BASHTOOLS_INSTALLATION_DIR}\"..."
     mkdir -p "$BASHTOOLS_INSTALLATION_DIR"
 
-    export PATH="${PATH}:${BASHTOOLS_INSTALLATION_DIR}"
-
 fi
 
 if [[ $1 != "-y" ]]; then
