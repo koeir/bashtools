@@ -21,6 +21,11 @@ if [ ! -d "$BASHTOOLS_INSTALLATION_DIR" ]; then
 
 fi
 
+echo ""
+echo "[$0] NOTE:"
+echo "[$0] Check if the tools are executable. Add permissions if they aren't"
+echo ""
+
 if [[ $1 != "-y" ]]; then
 
     read -p "[$0] Copy the executables to "${BASHTOOLS_INSTALLATION_DIR}"? (y/n): " confirm
@@ -40,7 +45,6 @@ if [ ! -d "$tools_dir" ]; then
     exit -2
 
 fi
-chmod +x -R "$tools_dir"
 
 skipped=0
 updated=0
@@ -72,7 +76,7 @@ while IFS= read -r -d '' tool; do
     fi
     
     if [[ $installed == true ]]; then
-        echo "[${0}] \"$filename\" already installed."
+        echo "[$0] \"$filename\" already installed."
     else
 
         echo "[$0] Copying \"${tool}\" to \"${BASHTOOLS_INSTALLATION_DIR}\"..."
@@ -83,8 +87,11 @@ while IFS= read -r -d '' tool; do
 done < <(find "$tools_dir" -type f -executable -print0);
 
 echo ""
-echo "[${0}] Done."
-echo "[${0}] Overwritten files:    "${updated}""
-echo "[${0}] Skipped files:        "${skipped}""
+echo "[$0] Done."
+echo "[$0] Overwritten files:    "${updated}""
+echo "[$0] Skipped files:        "${skipped}""
+echo ""
+echo "[$0] TIP:"
+echo "[$0] Append the installation directory to \$PATH (add it in your shell's startup file for persistence)."
 
 exit 0
