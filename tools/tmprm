@@ -1,8 +1,36 @@
 #!/bin/bash
 
 # tmprm
-## Moves file/dir to /tmp instead of outright rm'ing
+## Compresses and moves file/dir to /tmp instead of outright rm'ing
 
-if ! mv "$1" /tmp; then
-    exit 1
+doCompression=true
+if [ ! -x "/usr/bin/gzip" ]; then
+    echo "[$0] WARNING: /usr/bin/gzip not found. Will be unable to compress files."
+doCompression=false
 fi
+
+for item in $@; do
+    if [ ! -e "$item" ]; then
+        echo "[$0] WARNING: Unable to find \"$item\". Skipping..."
+        continue
+    fi
+
+    if $doCompression; then
+
+        if ! gzip -1r "$item"; then
+            echo "[$0] WARNING: Error while compressing $item."
+        fi
+
+        if ! mv "$item.gz" /tmp; then
+            echo "[$0] WARNING: Error while moving $item."
+        fi
+
+    else
+
+        if ! mv "$item" /tmp; then
+            echo "[$0] WARNING: Error while moving $item."
+        fi
+
+    fi
+
+done
