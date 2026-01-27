@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# bashtools
+# Main purpose is for being able to use the tools as root; and
+# for uninstalling the tools
+
+# Colors lol
+RED="\e[1;31m"
+NORMAL="\e[0m"
+
+if [ -z "$1" ]; then
+    echo -e "${RED}[$0] No arguments supplied.${NORMAL}"
+    exit 1
+fi
+
+BASHTOOLS_INSTALLATION_DIR="/usr/share/bashtools"
+if [ ! -d "$BASHTOOLS_INSTALLATION_DIR" ]; then
+    echo -e "${RED}[$0] WARNING: $BASHTOOLS_INSTALLATION_DIR not found.${NORMAL}"
+fi
+
+
+argv=("$@")
+thiscommand="/usr/bin/bshtls"
+subcommand="$1"
+suppargs="${argv[@]:1}"
+
+# Uninstall bashtools
+if [[ "$subcommand" == "uninstall" ]]; then
+
+    if (( EUID != 0 )); then
+
+        echo -e "${RED}[$0] Uninstall must be ran as root.${NORMAL}"
+        exit -1
+
+    fi
+
+    if [[ "${suppargs[0]}" != "-y" ]]; then
+        read -p "[$0] Uninstall bashtools? (y/n): " confirm
+        if [[ ! $confirm =~ ^[yY]$ ]]; then
+            echo -e "[$0] Cancelling..."
+            exit 0
+        fi
+    fi
+
+    UNINSTALLATION_DIR="$(mktemp -d)"
+
+    echo "[$0] Moving \"$BASHTOOLS_INSTALLATION_DIR\" and \"$0\" to \"$UNINSTALLATION_DIR\"..."
+    if ! mv -v "$BASHTOOLS_INSTALLATION_DIR" "$thiscommand" -t "$UNINSTALLATION_DIR/"; then
+        echo -e "${RED}[$0] WARNING: Error while moving files and directories to \"$UNINSTALLATION_DIR\".${NORMAL}"
+
+        if [ -z "$(/usr/bin/ls "$UNINSTALLATION_DIR")" ]; then
+            rm -r "$UNINSTALLATION_DIR"
+        fi
+        exit 1
+    fi
+
+    echo ""
+    echo "[$0] Done."
+    exit 0
+fi
+
+# Execute bashtool subcommand
+if [[ -z "$(find "$BASHTOOLS_INSTALLATION_DIR" -type f -executable -name "$subcommand")" ]]; then
+    echo -e "${RED}[$0] ERROR: $subcommand does not exist in $BASHTOOLS_INSTALLATION_DIR.${NORMAL}"
+    exit 3
+fi
+
+"$subcommand" "${suppargs[@]}"
