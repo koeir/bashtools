@@ -6,7 +6,7 @@
 doCompression=true
 if [ ! -x "/usr/bin/gzip" ]; then
     echo "[$0] WARNING: /usr/bin/gzip not found. Will be unable to compress files."
-doCompression=false
+    doCompression=false
 fi
 
 for item in $@; do
@@ -16,21 +16,12 @@ for item in $@; do
     fi
 
     if $doCompression; then
-
-        if ! gzip -1r "$item"; then
-            echo "[$0] WARNING: Error while compressing $item."
+        gzip -1r "$item"
+        if [ ! -d "$item" ]; then item="$item.gz"
         fi
-
-        if ! mv "$item.gz" /tmp; then
-            echo "[$0] WARNING: Error while moving $item."
-        fi
-
-    else
-
-        if ! mv "$item" /tmp; then
-            echo "[$0] WARNING: Error while moving $item."
-        fi
-
     fi
 
+    if ! mv "$item" /tmp; then
+        echo "[$0] WARNING: Error while moving \"$item\"."
+    fi
 done
