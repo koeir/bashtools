@@ -65,4 +65,4 @@ if [[ -z "$(find "$BASHTOOLS_INSTALLATION_DIR" -type f -executable -name "$subco
     exit 3
 fi
 
-"$subcommand" "${suppargs[@]}"
+"${BASHTOOLS_INSTALLATION_DIR}/${subcommand}" "${suppargs[@]}"
