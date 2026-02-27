@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# docker-exec
+#
+# Greps for identifiers of running docker processes and runs execute;
+# Eliminates the need to use container ID
+
+usage() {
+    echo "docker-exec"
+    echo "Usage: docker-exec [container name/id/image] [command]"
+    echo ""
+    echo "Make sure that the name/id/image is unique. It has to be something that grep can find in \`docker ps\`."
+}
+
+if (($# < 2)); then
+    usage
+    exit
+fi
+
+if [ ! -f "/usr/bin/awk" ]; then
+    echo "[$0] /usr/bin/awk is missing!"
+    exit
+fi
+
+if [ ! -f "/usr/bin/docker" ]; then
+    echo "[$0] /usr/bin/docker is missing!"
+    exit
+fi
+
+container_id="$(docker ps | grep "$1" | awk -F ' ' '{print $1}')"
+if [[ -z "$container_id" ]]; then
+    echo "[$0] No such container found: \"$1\"."
+    exit
+fi
+if (($(echo "$container_id" | wc -l) != 1)); then
+    echo "[$0] Identifier \"$1\" is not unique. Try using a different identifier or include more chararacters"
+    exit
+fi
+
+docker exec -it "$container_id" ${@:2}
