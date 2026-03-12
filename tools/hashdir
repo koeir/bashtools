@@ -13,8 +13,8 @@ usage() {
     echo ""
     echo "Usage:
     -h      Help
-    -c      Compile hashes of all the files in the directory into one hash [default]
-    -i      Keep individual hashes of each file"
+    -c      Compile hashes of all the files in the directory into one hash
+    -i      Keep individual hashes of each file [default]"
 }
 
 # Default
