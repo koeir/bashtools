@@ -2,26 +2,27 @@
 
 # tmprm
 ## Compresses and moves file/dir to /tmp instead of outright rm'ing
+#
+# Depends on:
+#   gzip (optional)
+#   tar (optional)
 
 doCompression=true
-if [ ! -x "/usr/bin/gzip" ]; then
-    echo "[$0] WARNING: /usr/bin/gzip not found. Will be unable to compress files."
+
+if ! command -v gzip &> /dev/null; then
+    echo "[$0] gzip is not installed. Will be unable to compress files."
     doCompression=false
 fi
 
 for item in $@; do
-    if [ ! -e "$item" ]; then
-        echo "[$0] WARNING: Unable to find \"$item\". Skipping..."
-        continue
-    fi
-
-    if $doCompression; then
-        gzip -1r "$item"
-        if [ ! -d "$item" ]; then item="$item.gz"
+    # If compress file
+    if [ -e "$item" ]; then
+        if doCompression; then
+            gzip -1r "$item"
         fi
-    fi
 
-    if ! mv "$item" /tmp; then
-        echo "[$0] WARNING: Error while moving \"$item\"."
+        command mv "$item" "/tmp"
+    else
+        echo "[$0] gzip is not installed. Will be unable to compress files."
     fi
 done
