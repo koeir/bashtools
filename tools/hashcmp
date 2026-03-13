@@ -3,6 +3,9 @@
 # hashcmp
 # Checks if two or more hashes are the same regardless of path
 # Catches the first instance of a hash being different
+#
+# Depends on: 
+#   just bash
 
 RED="\e[1;31m"
 GREEN="\e[1;32m"

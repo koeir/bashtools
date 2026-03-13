@@ -1,9 +1,17 @@
 #!/bin/bash
 
 # ctest
-# Compiles C code without making binary
+# Checks if the code compiles but gets rid of the binary
+#
+# Depends on: 
+#   gcc
+
+if ! command -v gcc &> /dev/null; then
+    echo "[$0] gcc is not installed."
+    exit
+fi
 
 tmp=$(/bin/mktemp)
 trap 'rm -f $tmp' EXIT
 
-/bin/gcc "$1" -o "$tmp"
+/usr/bin/gcc "$1" -o "$tmp"

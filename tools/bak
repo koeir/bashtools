@@ -2,10 +2,12 @@
 
 # bak
 # Creates a backup copy of your file/directory in the current directory
+#
+# Depends on: 
+#   just bash
 
-argv=("$@")
 
-for arg in ${argv[@]}; do
+for arg in $@; do
     if [ ! -e "$arg" ]; then
         echo "[$0] $arg: File or directory not found."
     else

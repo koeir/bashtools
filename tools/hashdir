@@ -4,8 +4,10 @@
 # Compiles the hashes of all files in a directory 
 #
 # Cuts out the file path before hashing a digest
-#
 # -c flag omits paths because it points to a temp file holding the hash values of all the files.
+#
+# Depends on:
+#   sha256sum
 
 usage() {
     echo "hashdir"

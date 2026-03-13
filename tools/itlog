@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# itlog
+# Just a shortcut for informal logging
+#
+# Depends on: 
+#   just bash
+
 logs_dir="$HOME/Documents/logs"
 if [[ ! -d "$logs_dir" ]]; then
     echo "[$0] Log directory not found: "$logs_dir""
