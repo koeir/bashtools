@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# hashdircmp
+# Uses the 'hashdir' tool to compare the hashes of two or more directories
+#
+# Depends on:
+#   hashcmp
+
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+NORMAL="\e[0m"
+
+argc=$#
+dirs=("$@")
+
+# Error if two or less argcs
+if (( argc < 2 )); then
+    echo -e "${RED}[$0] ERROR: Argument count is less than 2.${NORMAL}"
+    return -1
+fi
+
+if ! command -v hashdir &> /dev/null; then
+    echo -e "${RED}[$0] ERROR: 'hashdir' is not installed.${NORMAL}"
+    return -1;
+fi
+
+for dir in ${dirs[@]:1}; do
+    if [[ "$(hashdir -c "$dir")" != "$(hashdir -c "${dirs[1]}")" ]]; then
+        echo "[$0] $dir: FAILED"
+    else
+        echo "[$0] $dir: OK"
+    fi
+done
