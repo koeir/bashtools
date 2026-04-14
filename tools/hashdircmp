@@ -16,12 +16,12 @@ dirs=("$@")
 # Error if two or less argcs
 if (( argc < 2 )); then
     echo -e "${RED}[$0] ERROR: Argument count is less than 2.${NORMAL}"
-    return -1
+    exit -1
 fi
 
 if ! command -v hashdir &> /dev/null; then
     echo -e "${RED}[$0] ERROR: 'hashdir' is not installed.${NORMAL}"
-    return -1;
+    exit -1;
 fi
 
 for dir in ${dirs[@]:1}; do

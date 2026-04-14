@@ -57,7 +57,7 @@ if [[ $compile_mode == true ]]; then
     for directory in "${argv[@]}"; do
         # Make temp file for piping hashes of multiple files
         temp=$(mktemp)
-        trap 'rm -f "$temp"' EXIT
+        trap 'rm -f "$temp"' exit
 
         # Hash files of the directory, cut paths, and stream to temp file
         find "$directory" -type f -exec sha256sum "{}" \+ | cut -d ' ' -f1 | sort > "$temp"
