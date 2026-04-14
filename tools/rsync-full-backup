@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# rsync-full-backup
+#
+# Backs up the entire system into a directory, excluding temp/device/process stuff that is loaded on boot
+#                                             (also excludes docker volumes)
+
+set -e
+
+if [[ $EUID != 0 ]]; then
+    echo "[$0] Script must be ran as root."
+    exit 1
+fi
+
+backupdir="$1"
+
+if (($# > 2)); then
+    echo "[$0] Too many arguments."
+    exit 1
+fi
+
+if [[ -z "$backupdir" ]]; then
+    echo "[$0] Missing argument: backup directory."
+    exit 1
+fi
+
+if [[ ! -d "$backupdir" ]]; then
+    echo "$backupdir: No such directory."
+    exit 1
+fi
+
+sudo rsync -ar "/" "$backupdir" --progress \
+    --exclude=/dev/* \
+    --exclude=/media/* \
+    --exclude=/mnt/* \
+    --exclude=/proc/* \
+    --exclude=/sys/* \
+    --exclude=/tmp/* \
+    --exclude=/run/* \
+    --exclude=/var/run/* \
+    --exclude=/var/lock/* \
+    --exclude=/lib/modules/*/volatile/.mounted \
+    --exclude=/var/cache/apt/archives/* \
+    --exclude=/var/lib/docker/* \
+    --exclude=/var/tmp/* \

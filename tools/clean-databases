@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# clean-databases
+#
+# A script for systems that use s6-rc
+# cleans up old compiled database directories
+
+dbs="/etc/s6/rc"
+
+if [ ! -d "$dbs" ]; then
+    echo "$dbs: Directory not found"
+    exit 1
+fi
+
+if ! command -v awk >& /dev/null; then 
+    echo "awk not installed."
+    exit 1
+fi
+
+currentdb="$(ls -lf ${dbs}/compiled | awk '{print $NF}')"
+
+for thing in $dbs/*; do
+    if [[ "$thing" != "$currentdb" ]] && [[ "$thing" != "${dbs}/compiled" ]]; then
+        cmd="rm -fr $thing"
+        echo $cmd
+        eval "$cmd"
+    fi
+done
