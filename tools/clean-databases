@@ -12,7 +12,7 @@ if [ ! -d "$dbs" ]; then
     exit 1
 fi
 
-if ! command -v awk >& /dev/null; then 
+if ! command -v awk &> /dev/null; then 
     echo "awk not installed."
     exit 1
 fi
