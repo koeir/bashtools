@@ -11,7 +11,7 @@ if [ -d "$nextcloud_data_directory" ]; then
             mkdir -p /mnt/backup/${nextcloud_data_directory}
     fi
 
-    sudo rsync -avr ${nextcloud_data_directory}/* /mnt/backup/${nextcloud_data_directory} --progress
+    sudo rsync -avr ${nextcloud_data_directory}/* /mnt/backup/${nextcloud_data_directory} --progress $@
 else
     echo "$nextcloud_data_directory not found"
 fi
