@@ -17,12 +17,16 @@ fi
 for item in $@; do
     # If compress file
     if [ -e "$item" ]; then
-        if doCompression; then
+        if $doCompression; then
             gzip -1r "$item"
         fi
 
-        command mv "$item" "/tmp"
-    else
-        echo "[$0] gzip is not installed. Will be unable to compress files."
+		if [ -f "$item.gz" ]; then
+		    mv "$item.gz" /tmp
+	    elif [ -d "$item" ]; then
+            mv "$item" /tmp
+        else
+            echo "[$0] $item: No such file or directory"
+        fi
     fi
 done
