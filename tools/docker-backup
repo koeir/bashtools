@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # docker-backup
+# Usage: docker-backup <rsync flags>
 #
 # It says docker backup but it really just backs up
 # my nextcloud data volume
