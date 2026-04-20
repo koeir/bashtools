@@ -7,6 +7,10 @@
 
 set -e
 
+usage() {
+    echo "Usage: rsync-full-backup <backup-directory> <optional: rsync-flags>"
+}
+
 if [[ $EUID != 0 ]]; then
     echo "[$0] Script must be ran as root."
     exit 1
@@ -14,20 +18,25 @@ fi
 
 backupdir="$1"
 
-if (($# > 2)); then
-    echo "[$0] Too many arguments."
-    exit 1
-fi
-
 if [[ -z "$backupdir" ]]; then
     echo "[$0] Missing argument: backup directory."
+    usage
     exit 1
 fi
 
 if [[ ! -d "$backupdir" ]]; then
     echo "$backupdir: No such directory."
+    usage
     exit 1
 fi
+
+# Shift until after --rsync flag
+for arg in "$@"; do
+    shift 1
+
+    if [[ "$arg" == "--rsync" ]]; then break
+    fi;
+done
 
 sudo rsync -ar "/" "$backupdir" --progress \
     --exclude=/dev/* \
@@ -43,3 +52,4 @@ sudo rsync -ar "/" "$backupdir" --progress \
     --exclude=/var/cache/apt/archives/* \
     --exclude=/var/lib/docker/* \
     --exclude=/var/tmp/* \
+    $@  # Include extra flags
