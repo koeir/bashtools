@@ -21,6 +21,8 @@ usage() {
     -i      Keep individual hashes of each file [default]"
 }
 
+PROGNAME=$(basename $0)
+
 # Default
 individual_mode=true
 while getopts "hci" flag; do 
@@ -49,7 +51,7 @@ argv=("$@")
 
 for arg in "${argv[@]}"; do
     if [[ ! -d "$arg" ]]; then
-        echo "[$0] Directory "$arg" not found" >&2
+        echo "[${PROGNAME}] "$arg": directory not found" >&2
         exit 1
     fi
 done
@@ -82,5 +84,5 @@ if [[ $individual_mode == true ]]; then
     exit 0
 fi
 
-echo "[$0] Unknown error occured" >&2
+echo "[${PROGNAME}] Unknown error occured" >&2
 exit 1

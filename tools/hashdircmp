@@ -10,24 +10,28 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
+PROGNAME=$(basename $0)
 argc=$#
 dirs=("$@")
 
 # Error if two or less argcs
 if (( argc < 2 )); then
-    echo -e "${RED}[$0] ERROR: Argument count is less than 2.${NORMAL}"
+    echo -e "${RED}[${PROGNAME}] ERROR: Argument count is less than 2.${NORMAL}"
     exit -1
 fi
 
 if ! command -v hashdir &> /dev/null; then
-    echo -e "${RED}[$0] ERROR: 'hashdir' is not installed.${NORMAL}"
+    echo -e "${RED}[${PROGNAME}] ERROR: 'hashdir' is not installed.${NORMAL}"
     exit -1;
 fi
 
 for dir in ${dirs[@]:1}; do
-    if [[ "$(hashdir -c "$dir")" != "$(hashdir -c "${dirs[0]}")" ]]; then
-        echo "[$0] $dir: FAILED"
+    if ! hash0=$(hashdir -c "$dir"); then exit; fi
+    if ! hash1=$(hashdir -c "${dirs[0]}"); then exit; fi
+
+    if [[ "$hash0" != "$hash1" ]]; then
+        echo "[${PROGNAME}] $dir: FAILED"
     else
-        echo "[$0] $dir: OK"
+        echo "[${PROGNAME}] $dir: OK"
     fi
 done
