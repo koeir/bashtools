@@ -1,0 +1,4 @@
+#!/bin/bash
+
+args=("$@")
+echo "${args[@]}" | tee -a $HOME/.reminders
