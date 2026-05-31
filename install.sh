@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Colors lol
-RED="\e[1;31m"
+# Colors lol RED="\e[1;31m"
 GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
@@ -20,11 +19,6 @@ if [ ! -d "$BASHTOOLS_INSTALLATION_DIR" ]; then
     mkdir -p "$BASHTOOLS_INSTALLATION_DIR"
 
 fi
-
-echo ""
-echo "[$0] NOTE:"
-echo "[$0] Check if the tools are executable. Add permissions if they aren't"
-echo ""
 
 if [[ $1 != "-y" ]]; then
 
@@ -79,12 +73,12 @@ installtool() {
         fi
     fi
     
-    if [[ $alreadyInstalled == true ]]; then
+    if $alreadyInstalled; then
         echo "[$0] \"$filename\" already installed."
     else
 
         echo "[$0] Copying \"${tool}\" to \"${installation_dir}\"..."
-        cp "$tool" "${installation_dir}/${filename}"
+        install -m 751 "$tool" "${installation_dir}/${filename}"
         installed=$((installed+1))
 
     fi
