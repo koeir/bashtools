@@ -5,31 +5,51 @@ GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
 if (( EUID != 0 )); then
-
     echo -e "${RED}[$0] Script must be ran as root.${NORMAL}"
     exit -1
-
 fi
 
-# Do not change for the love of god
+echo "Where to install?"
+echo "0: /usr/share/bashtools [default]"
+echo "1: /usr/bin"
+echo "2: other"
+
+while true; do
+    read -r choice
+    choice=${choice:-0}
+
+    [[ "$choice" =~ ^[0-2]$ ]] && break
+
+    echo ""
+    echo "[$0] Invalid choice"
+done
+
 BASHTOOLS_INSTALLATION_DIR="/usr/share/bashtools"
-if [ ! -d "$BASHTOOLS_INSTALLATION_DIR" ]; then
-
-    echo "[$0] Making directory \"${BASHTOOLS_INSTALLATION_DIR}\"..."
-    mkdir -p "$BASHTOOLS_INSTALLATION_DIR"
-
-fi
+case "$choice" in
+    1)
+        BASHTOOLS_INSTALLATION_DIR="/usr/bin"
+        ;;
+    2)
+        read -p "where?: " choice
+        BASHTOOLS_INSTALLATION_DIR="$choice"
+        ;;
+esac
 
 if [[ $1 != "-y" ]]; then
-
     read -p "[$0] Copy the executables to "${BASHTOOLS_INSTALLATION_DIR}"? (y/n): " confirm
     if [[ ! $confirm =~ ^[yY]$ ]]; then
         echo -e "[$0] Cancelling..."
         exit 0
     fi
-
 fi
 
+if [ ! -d "$BASHTOOLS_INSTALLATION_DIR" ]; then
+    echo "[$0] Making directory \"${BASHTOOLS_INSTALLATION_DIR}\"..."
+    if ! mkdir -p "$BASHTOOLS_INSTALLATION_DIR"; then
+        echo "[$0] Failed to make directory"
+        exit 1
+    fi
+fi
 
 bashtools="$(dirname "$0")"
 tools_dir="${bashtools}/tools"
