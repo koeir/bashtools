@@ -8,7 +8,7 @@
 set -e
 
 usage() {
-    echo "Usage: rsync-full-backup <backup-directory> <optional: rsync-flags>"
+    echo "Usage: rsync-full-backup <backup-directory> [OPTIONAL: --rsync <rsync-flags>]"
 }
 
 if [[ $EUID != 0 ]]; then
@@ -38,14 +38,17 @@ for arg in "$@"; do
     fi;
 done
 
-sudo rsync -ar "/" "$backupdir" --progress \
+sudo rsync -aAXHv "/" "$backupdir" --progress \
+    --numeric-ids \
+    --log-file=/var/log/rsync-backup.log \
     --exclude=/dev/* \
-    --exclude=/media/* \
-    --exclude=/mnt/* \
     --exclude=/proc/* \
     --exclude=/sys/* \
     --exclude=/tmp/* \
     --exclude=/run/* \
+    --exclude=/mnt/* \
+    --exclude=/media/* \
+    --exclude=/lost+found/ \
     --exclude=/var/run/* \
     --exclude=/var/lock/* \
     --exclude=/lib/modules/*/volatile/.mounted \
