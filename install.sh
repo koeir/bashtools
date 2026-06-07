@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Colors lol RED="\e[1;31m"
+# Colors lol 
+RED="\e[1;31m"
 GREEN="\e[1;32m"
 NORMAL="\e[0m"
 
@@ -84,9 +85,8 @@ installtool() {
 
         else
             
-            echo -e "${RED}[$0] ! Filename \"${filename}\" found in \"${installation_dir}\" !..."
-            echo -e "...but the contents are different."
-            echo -e "${GREEN}[$0] Making a copy of \"${installation_dir}/${filename}\" to /tmp...${NORMAL}"
+            echo -e "${RED}[$0] Filename \"${filename}\" found in \"${installation_dir}\" but the contents are different.${NORMAL}"
+            echo -e "[$0] Making a copy of \"${installation_dir}/${filename}\" to /tmp..."
             cp "${installation_dir}/${filename}" /tmp
             updated=$((updated+1))
 
