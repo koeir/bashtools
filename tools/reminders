@@ -1,0 +1,161 @@
+#!/bin/bash
+
+reminders_file="$HOME/.reminders"
+PN="$(basename $0)"
+
+_add() {
+    linecount="$(wc -l "$reminders_file" | awk '{print $1}')"
+
+    if [ -z "$1" ]; then
+        echo "$PN: $0: missing input"
+        return 1
+    fi
+
+    line=$((++linecount))
+
+    echo "$line: [ ] $1" >> $reminders_file 
+}
+
+_clear() {
+    if [ $# -gt 1 ]; then
+        echo "$PN: $0: too many arguments"
+    fi
+
+    echo -n "" > $reminders_file
+}
+
+_find_task() {
+    task="$(grep "$1" "$reminders_file")"
+    if [ $? != 0 ]; then
+        return $?
+    fi
+
+    tasknum="$(echo "$task" | awk -F':' '{print $1}')"
+    lc="$(echo "$tasknum" | wc -l)"
+    if ((lc > 1)); then
+        echo "$PN: $0: warning: duplicate task numbers" >&2
+    fi
+
+    echo "$tasknum"
+}
+
+_uncomplete() { 
+    if [[ "$1" == "all" ]]; then
+        if [ $# -gt 2 ]; then
+            echo "$PN: $0: too many arguments"
+            return 1
+        fi
+
+        sed -i '1,$s/\[\*\]/[ ]/' $reminders_file
+        if [ $? != 0 ]; then
+            return $?
+        fi
+
+        return 0
+    fi
+
+    tasknum="$(_find_task "$1")"
+
+    for num in $tasknum; do
+        sed -i "${num}s/\[\*\]/[ ]/" $reminders_file
+        if [ $? != 0 ]; then
+			return $?
+        fi
+    done
+}
+
+_complete() {
+    if [[ "$1" == "all" ]]; then
+        if [ $# -gt 2 ]; then
+            echo "$PN: $0: too many arguments"
+            return 1
+        fi
+
+        sed -i '1,$s/\[ \]/[*]/' $reminders_file
+        if [ $? != 0 ]; then
+			return $?
+        fi
+
+        return 0
+    fi
+
+    tasknum="$(_find_task "$1")"
+
+    for num in $tasknum; do
+        sed -i "${num}s/\[ \]/[*]/" $reminders_file
+        if [ $? != 0 ]; then
+			return $?
+        fi
+    done
+}
+
+_ls() {
+    list="$(cat $reminders_file)"
+
+    if [ -z "$list" ]; then
+        echo "$PN: you have no reminders"
+        return 0
+    fi
+
+    if [ $? != 0 ]; then
+        echo "$PN: $list"
+        return 1
+    fi
+
+    echo "REMINDERS:"
+    echo "$list"
+}
+
+if [ ! -f "$reminders_file" ]; then
+    if ! touch "$reminders_file"; then
+        echo "$PN: error: $reminders_file: unable to create file"
+        exit 1
+    fi
+fi
+
+case $1 in
+    "add")
+        if [ $# -lt 2 ]; then
+            echo "$PN: $0: too few arguments"
+            return 1
+        fi
+
+        for msg in "${@:2}"; do
+            _add "$msg"
+        done
+
+        _ls
+        ;;
+    "clear") 
+        _clear 
+        ;;
+    "ls") 
+       _ls 
+        ;;
+    "")
+       _ls
+        ;;
+    "complete")
+        if [ $# -lt 2 ]; then
+            echo "$PN: $0: too few arguments"
+            return 1
+        fi
+
+        for task in "${@:2}"; do
+            _complete "$task"
+        done
+        ;;
+    "uncomplete")
+        if [ $# -lt 2 ]; then
+            echo "$PN: $0: too few arguments"
+            return 1
+        fi
+
+        for task in "${@:2}"; do
+            _uncomplete "$task"
+        done
+        ;;
+    *)
+        echo "$PN: error: $1: invalid subcommand"
+        ;;
+esac
