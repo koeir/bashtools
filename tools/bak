@@ -1,18 +1,90 @@
 #!/bin/bash
 
 # bak
-# Creates a backup copy of your file/directory in the current directory
-#
-# Depends on: 
-#   just bash
 
+PN="$(basename $0)"
 
-for arg in $@; do
-    if [ ! -e "$arg" ]; then
-        echo "[$0] $arg: File or directory not found."
-    else
-        cp -r "$arg" "${arg}.bak"
+declare -a flags
+declare -a files
+extension=".bak"
+doCompression=false
+doArchive=false
+
+# Parse args
+if [ $# -lt 1 ]; then
+    echo "$PN: Missing arguments"
+    exit 1
+fi
+
+for arg in "$@"; do
+    if [[ "$arg" =~ ^- ]]; then 
+        flags+=("$arg")
+        continue
     fi
+
+    files+=("$arg")
 done
 
-exit 0
+# Parse flags
+expanded_flags=()
+
+## Flatten chained short flags
+for flag in "${flags[@]}"; do
+    if [[ ! "$flag" =~ ^-[[:alpha:]]{2,}$ ]]; then
+        expanded_flags+=("$flag")
+        continue
+    fi
+
+    i=1
+    while [[ "${flag:${i}:1}" =~ [[:alpha:]] ]]; do
+        expanded_flags+=("-${flag:${i}:1}")
+        ((i++))
+    done
+done
+
+flags=("${expanded_flags[@]}")
+
+## Parse w/ flattened chains
+i=0
+for flag in "${flags[@]}"; do
+    case "$flag" in
+        --extension=*) extension="${flag#*=}" ;;
+        -c|--compress) doCompression=true ;;
+        -a|--archive) doArchive=true ;;
+        --path=*) path="${flag#*=}" ;;
+        *) break ;;
+    esac
+
+    unset "flags[$i]"
+    ((i++))
+done
+
+unset expanded_flags
+
+# Main function
+if ! command -v gzip &>/dev/null; then 
+    echo "$PN: warning: gzip not found, compression will be unavailable"
+    doCompression=false
+fi
+
+if ! command -v tar &>/dev/null; then
+    echo "$PN: warning: tar not found, archiving will be unavailable"
+    doArchive=false
+fi
+
+for file in "${files[@]}"; do
+    [ -v path ] || path=${file}${extension}
+
+    cp ${flags[@]} "$file" "$path" || continue
+
+    if $doCompression; then
+        if [ -d "$file" ] && $doArchive; then
+            command tar -cf "$path".tar "$path" && 
+                rm -fr "$path"; path+=".tar"
+        fi
+
+        command gzip "$path" -1 && path+=".gz"
+    fi
+
+    echo "$file -> $path"
+done
