@@ -134,8 +134,8 @@ fi
 case $1 in
     "add")
         if [ $# -lt 2 ]; then
-            echo "$PN: $0: too few arguments"
-            return 1
+            echo "$PN: add: too few arguments"
+            exit 1
         fi
 
         for msg in "${@:2}"; do
@@ -155,8 +155,8 @@ case $1 in
         ;;
     "complete")
         if [ $# -lt 2 ]; then
-            echo "$PN: $0: too few arguments"
-            return 1
+            echo "$PN: complete: too few arguments"
+            exit 1
         fi
 
         for task in "${@:2}"; do
@@ -165,8 +165,8 @@ case $1 in
         ;;
     "uncomplete")
         if [ $# -lt 2 ]; then
-            echo "$PN: $0: too few arguments"
-            return 1
+            echo "$PN: uncomplete: too few arguments"
+            exit 1
         fi
 
         for task in "${@:2}"; do
