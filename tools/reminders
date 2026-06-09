@@ -4,24 +4,20 @@ reminders_file="$HOME/.reminders"
 PN="$(basename $0)"
 
 _add() {
-    linecount="$(wc -l "$reminders_file" | awk '{print $1}')"
-
     if [ -z "$1" ]; then
         echo "$PN: $0: missing input"
         return 1
     fi
 
-    line=$((++linecount))
-
-    echo "$line: [ ] $1" >> $reminders_file 
+    echo "[ ] $1" >> $reminders_file 
 }
 
 _clear() {
-    tmpfile="$(mktemp)"
+    local tmpfile="$(mktemp)"
+    echo "$PN: making copy to $tmpfile"
 
     if [ "$1" == "all" ]; then
         if [ ! -s "$reminders_file" ]; then
-            echo "$PN: copying reminders to $tmpfile"
             cat "$reminders_file" > "$tmpfile"
         fi
 
@@ -31,29 +27,11 @@ _clear() {
         return 0
     fi
 
-    tasknum="$(_find_task "$1")"
+    local line="$1"
+
+    sed -n "${line}p" "$reminders_file" | tee -a "$tmpfile"
+    sed -i "${line}d" "$reminders_file"
     [ $? -ne 0 ] && return 1;
-
-    for num in $tasknum; do
-        sed -i "${num}d" "$reminders_file"
-        [ $? -ne 0 ] && return 1;
-    done
-}
-
-_find_task() {
-    task="$(grep "$1" "$reminders_file")"
-    if [ $? -ne 0 ]; then
-        echo "$PN: error: no such task number" >&2
-        return 1
-    fi
-
-    tasknum="$(echo "$task" | awk -F':' '{print $1}')"
-    lc="$(echo "$tasknum" | wc -l)"
-    if [ "$lc" -gt 1 ]; then
-        echo "$PN: warning: duplicate task numbers" >&2
-    fi
-
-    echo "$tasknum"
 }
 
 _uncomplete() { 
@@ -69,15 +47,12 @@ _uncomplete() {
         return 0
     fi
 
-    tasknum="$(_find_task "$1")"
+    local line="$1"
+
+    sed -i "${line}s/\[\*\]/[ ]/" "$reminders_file"
     if [ $? -ne 0 ]; then return $?; fi
 
-    for num in $tasknum; do
-        sed -i "${num}s/\[\*\]/[ ]/" "$reminders_file"
-        if [ $? -ne 0 ]; then return $?; fi
-
-        grep "^$num" "$reminders_file"
-    done
+    sed -n "${line}p" "$reminders_file"
 }
 
 _complete() {
@@ -93,27 +68,27 @@ _complete() {
         return 0
     fi
 
-    tasknum="$(_find_task "$1")"
+    local line="$1"
+
+    sed -i "${line}s/\[ \]/[*]/" "$reminders_file"
     if [ $? -ne 0 ]; then return $?; fi
 
-    for num in $tasknum; do
-        sed -i "${num}s/\[ \]/[*]/" "$reminders_file"
-        if [ $? -ne 0 ]; then return $?; fi
-
-        grep "^$num" "$reminders_file"
-    done
+    sed -n "${line}p" "$reminders_file"
 }
 
 _ls() {
     local silent=false
+
     if [ "$1" == "silent" ]; then
         silent=true
+    elif [[ "$1" =~ ^[0-9]* ]]; then
+        line="$1"
     elif [[ ! -z "$1" ]]; then
         echo "$PN: $0: $1: unknown subcommand"
         return 1
     fi
 
-    list="$(cat $reminders_file)"
+    local list="$(cat $reminders_file)"
 
     if [ -z "$list" ]; then
         if ! $silent; then
@@ -128,8 +103,18 @@ _ls() {
         return 1
     fi
 
+    if [ -n "$line" ]; then
+        sed -n "${line}p" "$reminders_file"
+        [ $? -ne 0 ] && return 1
+        return 0
+    fi
+
     echo "REMINDERS:"
-    echo "$list"
+    local count=1
+    while IFS= read -r line; do
+        echo "$count: $line"
+        ((count++))
+    done <<< "$list"
 }
 
 if [ ! -f "$reminders_file" ]; then
@@ -163,7 +148,7 @@ case $1 in
         done
         ;;
     "ls") 
-       _ls 
+       _ls "${@:2}"
         ;;
     "")
        _ls "silent"
