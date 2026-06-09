@@ -17,23 +17,20 @@ _add() {
 }
 
 _clear() {
-    if [ $# -gt 1 ]; then
-        echo "$PN: $0: too many arguments"
-    fi
-
     echo -n "" > $reminders_file
 }
 
 _find_task() {
     task="$(grep "$1" "$reminders_file")"
     if [ $? -ne 0 ]; then
-        return $?
+        echo "$PN: error: no such task number" >&2
+        return 1
     fi
 
     tasknum="$(echo "$task" | awk -F':' '{print $1}')"
     lc="$(echo "$tasknum" | wc -l)"
     if [ "$lc" -gt 1 ]; then
-        echo "$PN: $0: warning: duplicate task numbers" >&2
+        echo "$PN: warning: duplicate task numbers" >&2
     fi
 
     echo "$tasknum"
@@ -53,10 +50,7 @@ _uncomplete() {
     fi
 
     tasknum="$(_find_task "$1")"
-    if [ -z "$tasknum" ]; then
-        echo "$PN: $0: $1: no such task"
-        return 1
-    fi
+    if [ $? -ne 0 ]; then return $?; fi
 
     for num in $tasknum; do
         sed -i "${num}s/\[\*\]/[ ]/" $reminders_file
@@ -80,9 +74,7 @@ _complete() {
     fi
 
     tasknum="$(_find_task "$1")"
-    if [ -z "$tasknum" ]; then
-        echo "$PN: $0: $1: no such task"
-    fi
+    if [ $? -ne 0 ]; then return $?; fi
 
     for num in $tasknum; do
         sed -i "${num}s/\[ \]/[*]/" $reminders_file
@@ -141,6 +133,10 @@ case $1 in
         _ls
         ;;
     "clear") 
+        if [ $# -gt 1 ]; then
+            echo "$PN: clear: too many arguments"
+        fi
+
         _clear 
         ;;
     "ls") 
