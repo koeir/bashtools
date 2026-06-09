@@ -26,13 +26,13 @@ _clear() {
 
 _find_task() {
     task="$(grep "$1" "$reminders_file")"
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         return $?
     fi
 
     tasknum="$(echo "$task" | awk -F':' '{print $1}')"
     lc="$(echo "$tasknum" | wc -l)"
-    if ((lc > 1)); then
+    if [ "$lc" -gt 1 ]; then
         echo "$PN: $0: warning: duplicate task numbers" >&2
     fi
 
@@ -47,9 +47,7 @@ _uncomplete() {
         fi
 
         sed -i '1,$s/\[\*\]/[ ]/' $reminders_file
-        if [ $? != 0 ]; then
-            return $?
-        fi
+        if [ $? -ne 0 ]; then return $?; fi
 
         return 0
     fi
@@ -69,16 +67,14 @@ _uncomplete() {
 }
 
 _complete() {
-    if [[ "$1" == "all" ]]; then
+    if [[ "$1" -eq "all" ]]; then
         if [ $# -gt 2 ]; then
             echo "$PN: $0: too many arguments"
             return 1
         fi
 
         sed -i '1,$s/\[ \]/[*]/' $reminders_file
-        if [ $? != 0 ]; then
-			return $?
-        fi
+        if [ $? -ne 0 ]; then return $?; fi
 
         return 0
     fi
@@ -98,7 +94,7 @@ _complete() {
 
 _ls() {
     local silent=0
-    if [[ "$1" == "silent" ]]; then
+    if [[ "$1" -eq "silent" ]]; then
         silent=1
     elif [[ ! -z "$1" ]]; then
         echo "$PN: $0: $1: unknown subcommand"
@@ -115,7 +111,7 @@ _ls() {
         return 0
     fi
 
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
         echo "$PN: $list"
         return 1
     fi
