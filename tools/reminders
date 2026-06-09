@@ -61,7 +61,7 @@ _uncomplete() {
 }
 
 _complete() {
-    if [[ "$1" -eq "all" ]]; then
+    if [ "$1" == "all" ]; then
         if [ $# -gt 2 ]; then
             echo "$PN: $0: too many arguments"
             return 1
@@ -85,9 +85,9 @@ _complete() {
 }
 
 _ls() {
-    local silent=0
-    if [[ "$1" -eq "silent" ]]; then
-        silent=1
+    local silent=false
+    if [ "$1" == "silent" ]; then
+        silent=true
     elif [[ ! -z "$1" ]]; then
         echo "$PN: $0: $1: unknown subcommand"
         return 1
@@ -96,7 +96,7 @@ _ls() {
     list="$(cat $reminders_file)"
 
     if [ -z "$list" ]; then
-        if [ "$silent" -eq 0 ]; then
+        if ! $silent; then
             echo "$PN: you have no reminders"
         fi
 
