@@ -55,12 +55,16 @@ _uncomplete() {
     fi
 
     tasknum="$(_find_task "$1")"
+    if [ -z "$tasknum" ]; then
+        echo "$PN: $0: $1: no such task"
+        return 1
+    fi
 
     for num in $tasknum; do
         sed -i "${num}s/\[\*\]/[ ]/" $reminders_file
-        if [ $? != 0 ]; then
-			return $?
-        fi
+        if [ $? -ne 0 ]; then return $?; fi
+
+        grep "^$num" "$reminders_file"
     done
 }
 
@@ -80,12 +84,15 @@ _complete() {
     fi
 
     tasknum="$(_find_task "$1")"
+    if [ -z "$tasknum" ]; then
+        echo "$PN: $0: $1: no such task"
+    fi
 
     for num in $tasknum; do
         sed -i "${num}s/\[ \]/[*]/" $reminders_file
-        if [ $? != 0 ]; then
-			return $?
-        fi
+        if [ $? -ne 0 ]; then return $?; fi
+
+        grep "^$num" "$reminders_file"
     done
 }
 
