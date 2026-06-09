@@ -90,10 +90,21 @@ _complete() {
 }
 
 _ls() {
+    local silent=0
+    if [[ "$1" == "silent" ]]; then
+        silent=1
+    elif [[ ! -z "$1" ]]; then
+        echo "$PN: $0: $1: unknown subcommand"
+        return 1
+    fi
+
     list="$(cat $reminders_file)"
 
     if [ -z "$list" ]; then
-        echo "$PN: you have no reminders"
+        if [ "$silent" -eq 0 ]; then
+            echo "$PN: you have no reminders"
+        fi
+
         return 0
     fi
 
@@ -133,7 +144,7 @@ case $1 in
        _ls 
         ;;
     "")
-       _ls
+       _ls "silent"
         ;;
     "complete")
         if [ $# -lt 2 ]; then
