@@ -17,7 +17,27 @@ _add() {
 }
 
 _clear() {
-    echo -n "" > $reminders_file
+    tmpfile="$(mktemp)"
+
+    if [ "$1" == "all" ]; then
+        if [ ! -s "$reminders_file" ]; then
+            echo "$PN: copying reminders to $tmpfile"
+            cat "$reminders_file" > "$tmpfile"
+        fi
+
+        echo "$PN: clearing $reminders_file"
+        echo -n "" > $reminders_file
+
+        return 0
+    fi
+
+    tasknum="$(_find_task "$1")"
+    [ $? -ne 0 ] && return 1;
+
+    for num in $tasknum; do
+        sed -i "${num}d" "$reminders_file"
+        [ $? -ne 0 ] && return 1;
+    done
 }
 
 _find_task() {
@@ -43,7 +63,7 @@ _uncomplete() {
             return 1
         fi
 
-        sed -i '1,$s/\[\*\]/[ ]/' $reminders_file
+        sed -i '1,$s/\[\*\]/[ ]/' "$reminders_file"
         if [ $? -ne 0 ]; then return $?; fi
 
         return 0
@@ -53,7 +73,7 @@ _uncomplete() {
     if [ $? -ne 0 ]; then return $?; fi
 
     for num in $tasknum; do
-        sed -i "${num}s/\[\*\]/[ ]/" $reminders_file
+        sed -i "${num}s/\[\*\]/[ ]/" "$reminders_file"
         if [ $? -ne 0 ]; then return $?; fi
 
         grep "^$num" "$reminders_file"
@@ -67,7 +87,7 @@ _complete() {
             return 1
         fi
 
-        sed -i '1,$s/\[ \]/[*]/' $reminders_file
+        sed -i '1,$s/\[ \]/[*]/' "$reminders_file"
         if [ $? -ne 0 ]; then return $?; fi
 
         return 0
@@ -77,7 +97,7 @@ _complete() {
     if [ $? -ne 0 ]; then return $?; fi
 
     for num in $tasknum; do
-        sed -i "${num}s/\[ \]/[*]/" $reminders_file
+        sed -i "${num}s/\[ \]/[*]/" "$reminders_file"
         if [ $? -ne 0 ]; then return $?; fi
 
         grep "^$num" "$reminders_file"
@@ -133,11 +153,14 @@ case $1 in
         _ls
         ;;
     "clear") 
-        if [ $# -gt 1 ]; then
-            echo "$PN: clear: too many arguments"
+        if [ -z "$2" ]; then 
+            _clear "all"
+            exit
         fi
 
-        _clear 
+        for arg in "${@:2}"; do
+            _clear "$arg"
+        done
         ;;
     "ls") 
        _ls 
