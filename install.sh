@@ -98,7 +98,7 @@ installtool() {
     else
 
         echo "[$0] Copying \"${tool}\" to \"${installation_dir}\"..."
-        install -m 751 "$tool" "${installation_dir}/${filename}"
+        install -m 755 "$tool" "${installation_dir}/${filename}"
         installed=$((installed+1))
 
     fi
