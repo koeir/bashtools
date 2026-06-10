@@ -95,21 +95,27 @@ _complete() {
 
 _ls() {
     local silent=false
+    local showUncompleted=false
+    local showCompleted=false
 
-    if [ "$1" == "silent" ]; then
-        silent=true
-    elif [[ "$1" =~ ^[0-9]* ]]; then
-        line="$1"
-    elif [[ ! -z "$1" ]]; then
-        echo "$PN: $0: $1: unknown subcommand"
-        return 1
-    fi
+    case "$1" in
+        silent) silent=true ;;
+        uncompleted) showUncompleted=true ;;
+        completed) showCompleted=true ;;
+        [[:digit:]]*) num="$1";;
+        *)
+            if [[ -n "$1" ]]; then
+                echo -e "$PN: $ERROR: $0: $1: unknown subcommand" >&2
+                return 1
+            fi
+            ;;
+    esac
 
     local list="$(cat $reminders_file)"
 
     if [ -z "$list" ]; then
         if ! $silent; then
-            echo "$PN: you have no reminders"
+            echo "$PN: info: you have no reminders"
         fi
 
         return 0
@@ -120,16 +126,29 @@ _ls() {
         return 1
     fi
 
-    if [ -n "$line" ]; then
-        sed -n "${line}p" "$reminders_file"
+    if [ -n "$num" ]; then
+        if [[ ! "$num" =~ ^[[:digit:]]*$ ]]; then
+            echo -e "$PN: $ERROR: $0: must be a task number" >&2
+            return 1
+        fi
+
+        sed -n "${num}p" "$reminders_file"
         return $?
     fi
 
     echo "REMINDERS:"
-    local count=1
+    local count=0
     while IFS= read -r line; do
+        count=$((++count))
+        if $showCompleted; then
+            grep "\[\*]" <<< "$line" &>/dev/null
+            [ $? -eq 0 ] || continue
+        elif $showUncompleted; then
+            grep "\[ ]" <<< "$line" &>/dev/null
+            [ $? -eq 0 ] || continue
+        fi
+
         echo "$count: $line"
-        ((count++))
     done <<< "$list"
     return $?
 }
