@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# tmprm
+## Compresses and moves file/dir to /tmp instead of outright rm'ing
+#
+# Depends on:
+#   gzip (optional)
+#   tar (optional)
+
+dumpster="$HOME/.dumpster"
+trashbin="$dumpster/trash.$(date '+%y/%m/%d %H:%M' | base64)"
+PN="$(basename $0)"
+
+doCompression=true
+doArchive=true
+
+if [ ! -d "$trashbin" ]; then
+    mkdir "$trashbin" -p || exit 1
+fi
+
+if ! command -v gzip &> /dev/null; then
+    echo "[$0] gzip is not installed. Will be unable to compress files"
+    doCompression=false
+fi
+
+if ! command -v tar &> /dev/null; then
+    echo "[$0] tar is not installed. Will be unable to archive directories"
+    doArchive=false
+fi
+
+for item in $@; do
+    dst="$trashbin/"
+
+    mv "$item" "$dst" || exit 1
+    dst+="$item"
+
+    if $doArchive; then
+        tar -cf "$dst.tar" "$dst" || exit 1
+        rm -rf "$dst" || exit 1
+        dst+=".tar"
+    fi
+
+    if $doCompression; then
+        gzip -1r "$dst" || exit 1
+        dst+=".gz"
+    fi
+
+    echo "$PN: ok: $item"
+done
