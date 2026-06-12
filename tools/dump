@@ -19,12 +19,12 @@ if [ ! -d "$trashbin" ]; then
 fi
 
 if ! command -v gzip &> /dev/null; then
-    echo "[$0] gzip is not installed. Will be unable to compress files"
+    echo "$PN: gzip is not installed. Will be unable to compress files"
     doCompression=false
 fi
 
 if ! command -v tar &> /dev/null; then
-    echo "[$0] tar is not installed. Will be unable to archive directories"
+    echo "$PN: tar is not installed. Will be unable to archive directories"
     doArchive=false
 fi
 
@@ -34,8 +34,13 @@ for item in $@; do
     mv "$item" "$dst" || exit 1
     dst+="$item"
 
-    if $doArchive; then
-        tar -cf "$dst.tar" "$dst" || exit 1
+    if $doArchive && [ -d "$item" ]; then
+        ret="$(tar -cf "$dst.tar" "$dst" 2>&1)"
+        if [ $? -ne 0 ]; then
+            echo "$PN: $ret: failed to archive '$item'"
+            exit 1
+        fi
+
         rm -rf "$dst" || exit 1
         dst+=".tar"
     fi
