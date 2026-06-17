@@ -1,4 +1,5 @@
 #!/bin/bash
+## git@github.com/koeir/bashtools.git
 
 # hashdircmp
 # Uses the 'hashdir' tool to compare the hashes of two or more directories

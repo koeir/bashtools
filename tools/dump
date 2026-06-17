@@ -1,4 +1,5 @@
 #!/bin/bash
+## git@github.com/koeir/bashtools.git
 
 # tmprm
 ## Compresses and moves file/dir to /tmp instead of outright rm'ing

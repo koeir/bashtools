@@ -1,4 +1,5 @@
 #!/bin/bash
+## git@github.com/koeir/bashtools.git
 
 reminders_file="$HOME/.reminders"
 PN="$(basename $0)"

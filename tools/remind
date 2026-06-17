@@ -1,4 +1,5 @@
 #!/bin/bash
+## git@github.com/koeir/bashtools.git
 
 args=("$@")
 echo "${args[@]}" | tee -a $HOME/.reminders

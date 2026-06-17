@@ -1,4 +1,5 @@
 #!/bin/bash
+## git@github.com/koeir/bashtools.git
 
 # ctest
 # Checks if the code compiles but gets rid of the binary
